@@ -12,6 +12,10 @@ routeSite.post('/siteregister', ValidasiToken, SiteController.SiteRegisterContro
 
 routeSite.get('/site', SiteController.GetAllSiteController);
 
+routeSite.get('/countstatus', SiteController.GetCountStatusSiteController); // This for count status
+
+routeSite.get('/pagnation', SiteController.PagnationSiteController);
+
 // ============================== END Route SIte from COntroller ====================================================
 
 module.exports = routeSite;
