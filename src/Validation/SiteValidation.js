@@ -4,7 +4,7 @@ const RegisterSiteValidate = Joi.object({
   sitename: Joi.string().required(),
   namapic: Joi.string(),
   notelp: Joi.string(),
-  status: Joi.string(),
+  status: Joi.string().valid('Close', 'Open', 'On_Progress').default('Close'),
   durasi: Joi.string(),
   remark: Joi.string(),
   location: Joi.string(),
