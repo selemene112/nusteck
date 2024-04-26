@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin{
+  id        String    @id @default(uuid())
+  name      String @db.VarChar(255)
+  email     String   @unique
+  password  String @db.VarChar(255)
+  photo     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  personRes PersonRes[] 
+
+  
+}
+
+model Worker{
+  id        String    @id @default(uuid())
+  name      String @db.VarChar(255)
+  email     String   @unique
+  password  String @db.VarChar(255)
+  photo     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  personRes PersonRes[] 
+ 
+}
+
+model Site{
+  id        String    @id @default(uuid())
+  sitename String @db.VarChar(255)
+  namapic  String 
+  notelp   String 
+  status   Role @default(Close)
+  durasi   String
+  remark   String
+  location String
+  provinsi String
+  kota     String
+  kecamatan String
+  desa     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  personRes PersonRes[] 
+}
+
+model PersonRes {
+  id        String    @id @default(uuid())
+  id_site   String
+  site      Site @relation(fields: [id_site], references: [id])
+  name_site String
+  id_admin  String
+  admin     Admin @relation(fields: [id_admin], references: [id])
+  name_admin String
+  id_worker  String
+  worker     Worker @relation(fields: [id_worker], references: [id])
+  name_worker String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+enum Role {
+  Close
+  On_Progress
+  Open
+
+}
+
+
+
