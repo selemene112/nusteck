@@ -40,11 +40,12 @@ model Worker{
 
 model Site{
   id        String    @id @default(uuid())
+  siteid   String @unique
   sitename String @db.VarChar(255)
   namapic  String 
   notelp   String 
   status   Role @default(Close)
-  durasi   String
+  durasi   String // harus di rubah ke angka
   remark   String
   location String
   provinsi String
