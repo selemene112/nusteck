@@ -40,8 +40,7 @@ const AdminRegisterController = async (req, res) => {
 
   try {
     const passwordHashed = await hashPassword(password);
-    // console.log(hashedPassword);
-    // return console.log(hashedPassword1);
+
     const data = await prisma.Admin.create({
       data: {
         name: name,
