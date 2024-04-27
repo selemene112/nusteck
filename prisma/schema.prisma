@@ -34,7 +34,7 @@ model Worker{
   photo     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  personRes PersonRes[] 
+ 
  
 }
 
@@ -42,19 +42,49 @@ model Site{
   id        String    @id @default(uuid())
   siteid   String @unique
   sitename String @db.VarChar(255)
-  namapic  String 
-  notelp   String 
   status   Role @default(Close)
-  durasi   String // harus di rubah ke angka
-  remark   String
-  location String
+  durasi   Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  personRes PersonRes[]
+  locationSite LocationSite?
+  kontakpic KontakPic?
+  renmark Renmark[]
+}
+
+model LocationSite {
+  id        String    @id @default(uuid())
+  id_site   String @unique
+  site      Site @relation(fields: [id_site], references: [id])
+  latitude String
+  longitude String
   provinsi String
-  kota     String
+  kabupaten String
   kecamatan String
   desa     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  personRes PersonRes[] 
+  
+}
+
+model KontakPic {
+  id        String    @id @default(uuid())
+  id_site   String @unique
+  site      Site @relation(fields: [id_site], references: [id])
+  namapic   String
+  notelp    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Renmark {
+  id        String    @id @default(uuid())
+  id_site   String 
+  site      Site @relation(fields: [id_site], references: [id])
+  remark    String
+  CreatedMarkby String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model PersonRes {
@@ -65,9 +95,6 @@ model PersonRes {
   id_admin  String
   admin     Admin @relation(fields: [id_admin], references: [id])
   name_admin String
-  id_worker  String
-  worker     Worker @relation(fields: [id_worker], references: [id])
-  name_worker String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -79,6 +106,8 @@ enum Role {
   Open
 
 }
+
+
 
 
 
