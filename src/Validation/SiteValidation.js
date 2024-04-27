@@ -1,17 +1,9 @@
 const Joi = require('joi');
 
 const RegisterSiteValidate = Joi.object({
+  siteid: Joi.string().required(),
   sitename: Joi.string().required(),
-  namapic: Joi.string(),
-  notelp: Joi.string(),
   status: Joi.string().valid('Close', 'Open', 'On_Progress').default('Close'),
-  durasi: Joi.string(),
-  remark: Joi.string(),
-  location: Joi.string(),
-  provinsi: Joi.string(),
-  kota: Joi.string(),
-  kecamatan: Joi.string(),
-  desa: Joi.string(),
 });
 
 module.exports = { RegisterSiteValidate };
