@@ -140,6 +140,7 @@ const AdminLoginController = async (req, res) => {
       token: TokenForKogin,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       status: 'failed',
       message: 'Internal Server Error',
