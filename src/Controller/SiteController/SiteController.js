@@ -11,6 +11,17 @@ const jwt = require('jsonwebtoken');
 const { CountTimeDownSite } = require('../../Utility/CountTImeUtility');
 //============================ END Call Utility ===============================
 
+/* 
+This Code For Modified Data From Site
+
+Feature Site :
+1)Register Site Controller 
+2)Get All Site Controller
+3)Get Count Status
+4)Patch For Edit Status
+5)Patch For Edit Durasi
+ */
+
 //  ================================================= Register Site Controller ===============================
 const SiteRegisterController = async (req, res) => {
   const form = req.body;
@@ -38,17 +49,9 @@ const SiteRegisterController = async (req, res) => {
   //+++++++++++++++++++++++++++++++++++++++++++++ Validate Use Joi +++++++++++++++++++++++++++++++++++++++++++
 
   const { error } = await RegisterSiteValidate.validate({
+    siteid: form.siteid,
     sitename: form.sitename,
-    namapic: form.namapic,
-    notelp: form.notelp,
     status: form.status,
-    durasi: form.durasi,
-    remark: form.remark,
-    location: form.location,
-    provinsi: form.provinsi,
-    kota: form.kota,
-    kecamatan: form.kecamatan,
-    desa: form.desa,
   });
   if (error) {
     return res.status(400).json({
@@ -60,37 +63,72 @@ const SiteRegisterController = async (req, res) => {
   //+++++++++++++++++++++++++++++++++++++++++ END Validate Use Joi +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   try {
-    //if all clear and this code for create site
-    const datasiteRegister = await prisma.Site.create({
-      data: {
-        sitename: form.sitename,
-        namapic: form.namapic,
-        notelp: form.notelp,
-        status: form.status,
-        durasi: form.durasi,
-        remark: form.remark,
-        location: form.location,
-        provinsi: form.provinsi,
-        kota: form.kota,
-        kecamatan: form.kecamatan,
-        desa: form.desa,
-      },
+    await prisma.$transaction(async (prisma) => {
+      // This For Register Site
+
+      const datasiteRegister = await prisma.Site.create({
+        data: {
+          siteid: form.siteid,
+          sitename: form.sitename,
+          status: form.status,
+        },
+      });
+
+      const personResData = {};
+
+      console.log(personResData);
+
+      //++++++++++++++++++++++++++++++++++++++++++++++++ Make PersenRes ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      // This Code For Create Who Create Site and Who Edit this site
+      const dataRegisPersen = await prisma.PersonRes.create({
+        data: {
+          id_site: datasiteRegister.id,
+          name_site: datasiteRegister.sitename,
+          id_admin: Token.id,
+          name_admin: Token.name,
+        },
+      });
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Register Success',
+        error: null,
+        data: {
+          datasiteRegister: datasiteRegister,
+          MakePersenres: dataRegisPersen,
+        },
+      });
     });
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++ END Make PersenRes +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     // this respon if success
-    return res.status(200).json({
-      status: 'success',
-      message: 'Register Success',
-      error: null,
-      data: datasiteRegister,
-    });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({
-      status: 'failed',
-      message: error.message,
-      error: error,
-      data: null,
-    });
+    // +++++++++++++++++++++++++++++++++++ Return error from Prisma +++++++++++++++++++++++++++++++++++++++++++++++
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // return email already exist from prisma
+      if (error.code === 'P2002') {
+        return res.status(400).json({
+          message: message.error,
+          error: error,
+          data: null,
+        });
+      }
+    } else if (error.code === 'P2003') {
+      return res.status(400).json({
+        message: message.error,
+        error: error,
+        data: null,
+      });
+    } else {
+      // return error from server
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message,
+        data: null,
+      });
+    }
   }
 };
 
@@ -165,6 +203,29 @@ const GetCountStatusSiteController = async (req, res) => {
 
 //================================================ END Get Count Status Site COntroller =================================================
 
+//================================================ Patch For Edit Status Site COntroller =================================================
+const EditStatusSiteController = async (req, res) => {
+  const { id } = req.params;
+  try {
+  } catch (error) {}
+};
+
+//================================================ END Patch For Edit Status Site COntroller =================================================
+
+//======================+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++==========================================================
+
+//==============+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++===============================================
+/*
+
+This Feature For Pagnation Site 
+
+this Code will Showing data from 
+Site table
+KontakPerson table
+Remark
+PersonRes => i will Make this code in future to find out who created and edited the table
+
+*/
 //===================================================Pagnation Site Controller ==========================================================
 
 const PagnationSiteController = async (req, res) => {
@@ -188,8 +249,6 @@ const PagnationSiteController = async (req, res) => {
       },
       where,
     });
-
-    // return console.log(CountTimeDownSite(ResultSitePagnation));
 
     const totalSite = await prisma.Site.count({
       where,
