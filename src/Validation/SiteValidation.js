@@ -6,4 +6,9 @@ const RegisterSiteValidate = Joi.object({
   status: Joi.string().valid('Close', 'Open', 'On_Progress').default('Close'),
 });
 
-module.exports = { RegisterSiteValidate };
+const PatchSiteStatusValidate = Joi.object({
+  status: Joi.string().valid('Close', 'Open', 'On_Progress').default('Close'),
+  durasi: Joi.number().integer().default(0),
+});
+
+module.exports = { RegisterSiteValidate, PatchSiteStatusValidate };
