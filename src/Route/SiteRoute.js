@@ -16,6 +16,9 @@ routeSite.get('/countstatus', SiteController.GetCountStatusSiteController); // T
 
 routeSite.get('/pagnation', SiteController.PagnationSiteController);
 
+routeSite.put('/editstatus/:id', ValidasiToken, SiteController.EditStatusSiteController);
+routeSite.post('/addlocation/:id', ValidasiToken, SiteController.RegisterLocationSiteController);
+
 // ============================== END Route SIte from COntroller ====================================================
 
 module.exports = routeSite;
