@@ -4,21 +4,26 @@ const prisma = new PrismaClient();
 //============================ Call Utility ===============================
 const Joi = require('joi');
 const secretKey = 'mysecretkey'; // make secret key from env
-const { RegisterSiteValidate } = require('../../Validation/SiteValidation');
-
+const { RegisterSiteValidate, PatchSiteStatusValidate } = require('../../Validation/SiteValidation');
 const jwt = require('jsonwebtoken');
-
 const { CountTimeDownSite } = require('../../Utility/CountTImeUtility');
 //============================ END Call Utility ===============================
+//================================ Call Validasi ===========================================
+const validasi = require('../../Validation/SIteValidasi');
+const AdminValidasi = require('../../Validation/AdminValidate');
 
+//================================ END Call Validasi ===========================================
 /* 
 This Code For Modified Data From Site
 
 Feature Site :
 1)Register Site Controller 
+  ==> Site Register
+  ==> LocationSite
+  ==> PersonRes
 2)Get All Site Controller
 3)Get Count Status
-4)Patch For Edit Status
+4)Patch For Edit Status 
 5)Patch For Edit Durasi
  */
 
@@ -133,7 +138,109 @@ const SiteRegisterController = async (req, res) => {
 };
 
 //============================ END Register Site Controller ===============================
+//=================================== Register Location Site ======================================================================
+const RegisterLocationSiteController = async (req, res) => {
+  const form = req.body;
+  const Token = req.user;
+  const { id } = req.params;
+  // This Code For Validation site already or not if not will be return this response site not found
+  const validatesite = await validasi.SiteValidasi(id);
+  if (!validatesite) {
+    return res.status(400).json({
+      status: 'failed',
+      message: 'Site Not Found',
+      error: null,
+      data: null,
+    });
+  }
 
+  //+++++++++++++++++++++++++++++++++++++++++++++ Validate Admin Or Not ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // This code for make sure you admin or not if you not admin will be return this response you are not admin
+  const AdminOrNot = await AdminValidasi.AdminOrNot(Token.id);
+  if (!AdminOrNot) {
+    return res.status(400).json({
+      status: 'failed',
+      message: 'You Are Not Admin',
+      error: null,
+      data: null,
+    });
+  }
+  //+++++++++++++++++++++++++++++++++++++++++++++ End Validate Admin Or Not +++++++++++++++++++++++++++++++++++++++++++
+  try {
+    /* 
+    this code for check location already or not
+    if nothing location this code will be make new location for utilty site
+    if locion already this code will be update location for utilty
+    */
+    const LocationalreadyValidation = await validasi.LocationSiteValidasi(id);
+    console.log(LocationalreadyValidation);
+    if (!LocationalreadyValidation) {
+      // This Code For Create Location
+      const datasiteRegister = await prisma.LocationSite.create({
+        data: {
+          id_site: id,
+          namapic: form.namapic,
+          notelp: form.notelp,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          provinsi: form.provinsi,
+          kabupaten: form.kabupaten,
+          kecamatan: form.kecamatan,
+          desa: form.desa,
+        },
+      });
+      return res.status(200).json({
+        status: 'success',
+        message: 'Register Location Success',
+        error: null,
+        data: datasiteRegister,
+      });
+    } else {
+      // This Code For Update Location
+      const editdataLocation = await prisma.LocationSite.update({
+        where: {
+          id_site: id,
+        },
+        data: {
+          namapic: form.namapic,
+          notelp: form.notelp,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          provinsi: form.provinsi,
+          kabupaten: form.kabupaten,
+          kecamatan: form.kecamatan,
+          desa: form.desa,
+        },
+      });
+      // This Code For Create Who Create Site and Who Edit this site
+      // await prisma.PersonRes.update({
+      //   where: {
+      //     id_site: id,
+      //   },
+      //   data: {
+      //     id_admin: Token.id,
+      //     name_admin: Token.name,
+      //   },
+      // });
+      return res.status(200).json({
+        status: 'success',
+        message: 'Edit Location Success',
+        error: null,
+        data: editdataLocation,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'failed',
+      message: error.message,
+      error: error,
+      data: null,
+    });
+  }
+};
+
+//=========================================== END Register Location Site ====================================================
 //=========================================== Get all site Controller ====================================================
 
 const GetAllSiteController = async (req, res) => {
@@ -206,8 +313,74 @@ const GetCountStatusSiteController = async (req, res) => {
 //================================================ Patch For Edit Status Site COntroller =================================================
 const EditStatusSiteController = async (req, res) => {
   const { id } = req.params;
+  const { status, durasi } = req.body;
+  const Token = req.token;
+  //++++++++++++++++++++++++++++++++++++++++++++++ Validate Admin Or Not ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  const ValidasiAmin = await prisma.Admin.findFirst({
+    where: {
+      id: Token.id,
+    },
+  });
+  if (!ValidasiAmin) {
+    return res.status(400).json({
+      status: 'failed',
+      message: 'You Are Not Admin',
+      error: null,
+      data: null,
+    });
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++++++ End Validate Admin Or Not +++++++++++++++++++++++++++++++++++++++++++
+  //+++++++++++++++++++++++++++++++++++++++++++++ Validate Use Joi +++++++++++++++++++++++++++++++++++++++++++
+  const { error } = PatchSiteStatusValidate.validate({ status, durasi });
+
+  if (error) {
+    return res.status(400).json({
+      message: error.message,
+      error: error,
+      data: null,
+    });
+  }
+
+  //+++++++++++++++++++++++++++++++++++++++++ END Validate Use Joi +++++++++++++++++++++++++++++++++++++++++++++++++++++++
   try {
-  } catch (error) {}
+    await prisma.$transaction(async (tx) => {
+      const datasite = await prisma.Site.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: status,
+          durasi: durasi,
+        },
+      });
+
+      await prisma.PersonRes.update({
+        where: {
+          id_site: id,
+        },
+        data: {
+          id_admin: Token.id,
+          name_admin: Token.name,
+        },
+      });
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Edit Status Success',
+        error: null,
+        data: datasite,
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: 'failed',
+      message: error.message,
+      error: error,
+      data: null,
+    });
+  }
 };
 
 //================================================ END Patch For Edit Status Site COntroller =================================================
@@ -301,4 +474,6 @@ module.exports = {
   SiteRegisterController,
   GetCountStatusSiteController,
   PagnationSiteController,
+  EditStatusSiteController,
+  RegisterLocationSiteController,
 };
