@@ -48,12 +48,12 @@ const CountTimeDownSite = async (site) => {
     }
   });
 
-  console.log(w);
+  //   console.log(w);
 };
 
-(async () => {
-  let datasite = await prisma.Site.findMany();
-  CountTimeDownSite(datasite);
-})();
+// (async () => {
+//   let datasite = await prisma.Site.findMany();
+//   CountTimeDownSite(datasite);
+// })();
 
 // module.exports = { CountTimeDownSite };

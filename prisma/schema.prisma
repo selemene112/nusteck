@@ -48,7 +48,6 @@ model Site{
   updatedAt DateTime @updatedAt
   personRes PersonRes[]
   locationSite LocationSite?
-  kontakpic KontakPic?
   renmark Renmark[]
 }
 
@@ -56,6 +55,8 @@ model LocationSite {
   id        String    @id @default(uuid())
   id_site   String @unique
   site      Site @relation(fields: [id_site], references: [id])
+  namapic   String
+  notelp    String
   latitude String
   longitude String
   provinsi String
@@ -67,15 +68,7 @@ model LocationSite {
   
 }
 
-model KontakPic {
-  id        String    @id @default(uuid())
-  id_site   String @unique
-  site      Site @relation(fields: [id_site], references: [id])
-  namapic   String
-  notelp    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+
 
 model Renmark {
   id        String    @id @default(uuid())

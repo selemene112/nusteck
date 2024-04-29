@@ -410,7 +410,7 @@ const PagnationSiteController = async (req, res) => {
 
     if (searchCriteria) {
       where = {
-        OR: [{ sitename: { contains: searchCriteria } }, { desa: { contains: searchCriteria } }, { kecamatan: { contains: searchCriteria } }, { kota: { contains: searchCriteria } }, { provinsi: { contains: searchCriteria } }],
+        OR: [{ sitename: { contains: searchCriteria } }],
       };
     }
 
@@ -421,6 +421,11 @@ const PagnationSiteController = async (req, res) => {
         createdAt: 'desc',
       },
       where,
+      include: {
+        locationSite: true,
+        renmark: true,
+        personRes: true,
+      },
     });
 
     const totalSite = await prisma.Site.count({
